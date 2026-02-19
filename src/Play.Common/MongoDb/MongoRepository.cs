@@ -49,6 +49,12 @@ namespace Play.Common.MongoDb
         {
             return await itemsCollection!.Find(filter).ToListAsync();
         }
+
+        public async Task<T?> GetAsync(Guid id)
+        {
+            var filter = filterBuilder.Eq(item => item.Id, id);
+            return await itemsCollection!.Find(filter).SingleOrDefaultAsync();
+        }
     }
 
 }

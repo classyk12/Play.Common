@@ -10,34 +10,14 @@ namespace Play.Common.MongoDb
         private readonly IMongoCollection<T>? itemsCollection = database.GetCollection<T>(CollectionName);
         private readonly FilterDefinitionBuilder<T> filterBuilder = Builders<T>.Filter; //helps us build the queries
 
-        public async Task CreateItemAsync(T item)
+        public async Task<IReadOnlyCollection<T>> GetAllAsync(Expression<Func<T, bool>> filter)
         {
-            ArgumentNullException.ThrowIfNull(item);
-            await itemsCollection!.InsertOneAsync(item);
+            return await itemsCollection!.Find(filter).ToListAsync();
         }
 
-        public async Task<T?> GetItemAsync(Guid id)
-        {
-            var filter = filterBuilder.Eq(item => item.Id, id);
-            return await itemsCollection!.Find(filter).SingleOrDefaultAsync();
-        }
-
-        public async Task<IReadOnlyCollection<T>> GetItemsAsync()
+        public async Task<IReadOnlyCollection<T>> GetAllAsync()
         {
             return await itemsCollection.Find(filterBuilder.Empty).ToListAsync();
-        }
-
-        public async Task UpdateItemAsync(T item)
-        {
-            ArgumentNullException.ThrowIfNull(item);
-            var filter = filterBuilder.Eq(existingItem => existingItem.Id, item.Id) ?? throw new Exception($"Item with id {item.Id} not found.");
-            await itemsCollection!.ReplaceOneAsync(filter, item);
-        }
-
-        public async Task DeleteItemAsync(Guid id)
-        {
-            var filter = filterBuilder.Eq(item => item.Id, id);
-            await itemsCollection!.DeleteOneAsync(filter);
         }
 
         public async Task<T?> GetAsync(Expression<Func<T, bool>> filter)
@@ -45,16 +25,29 @@ namespace Play.Common.MongoDb
             return await itemsCollection!.Find(filter).SingleOrDefaultAsync();
         }
 
-        public async Task<IReadOnlyCollection<T>> GetAllAsync(Expression<Func<T, bool>> filter)
-        {
-            return await itemsCollection!.Find(filter).ToListAsync();
-        }
-
         public async Task<T?> GetAsync(Guid id)
         {
             var filter = filterBuilder.Eq(item => item.Id, id);
             return await itemsCollection!.Find(filter).SingleOrDefaultAsync();
         }
-    }
 
+        public async Task CreateAsync(T item)
+        {
+            ArgumentNullException.ThrowIfNull(item);
+            await itemsCollection!.InsertOneAsync(item);
+        }
+
+        public async Task UpdateAsync(T item)
+        {
+            ArgumentNullException.ThrowIfNull(item);
+            var filter = filterBuilder.Eq(existingItem => existingItem.Id, item.Id) ?? throw new Exception($"Item with id {item.Id} not found.");
+            await itemsCollection!.ReplaceOneAsync(filter, item);
+        }
+
+        public async Task DeleteAsync(Guid id)
+        {
+            var filter = filterBuilder.Eq(item => item.Id, id);
+            await itemsCollection!.DeleteOneAsync(filter);
+        }
+    }
 }

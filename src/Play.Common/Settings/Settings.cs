@@ -12,4 +12,9 @@ namespace Play.Common.Settings
     {
         public string? Name { get; set; }
     }
+
+    public class RabbitMqSettings
+    {
+        public string? Host { get; init; } //init so that it cant bre changed after initialization, but can be set during object creation
+    }
 }
